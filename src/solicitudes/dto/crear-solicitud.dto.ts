@@ -7,6 +7,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
+
 export class FamiliarDto {
   @IsString()
   parentesco: string;
@@ -24,18 +25,43 @@ export class FamiliarDto {
 }
 
 export class CrearSolicitudDto {
+  // Campos normalizados según la tabla direcciones
   @IsOptional()
   @IsString()
-  domicilio?: string;
+  calle?: string;
 
   @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  telefonos?: string[];
+  @IsString()
+  callenro?: string;
+
+  @IsOptional()
+  @IsString()
+  barrio?: string;
+
+  @IsOptional()
+  @IsString()
+  ciudad?: string;
+
+  @IsOptional()
+  @IsString()
+  provincia?: string;
+
+  @IsOptional()
+  @IsString()
+  tel1?: string;
+
+  @IsOptional()
+  @IsString()
+  tel2?: string;
 
   @IsOptional()
   @IsEmail({}, { message: 'El correo electrónico no es válido' })
-  correoElectronico?: string;
+  email?: string;
+
+  // Otros campos del legajo
+  @IsOptional()
+  @IsString()
+  estadoCivil?: string;
 
   @IsOptional()
   @IsString()
@@ -43,7 +69,7 @@ export class CrearSolicitudDto {
 
   @IsOptional()
   @IsString()
-  estadoCivil?: string;
+  funcion?: string;
 
   @IsOptional()
   @IsArray()
@@ -58,8 +84,10 @@ export class CrearSolicitudDto {
   @IsOptional()
   @IsString()
   certificadoDiscapacidad?: string;
+  
+  @IsOptional()
+  cud?: any; 
 
   @IsOptional()
-  @IsString()
-  funcion?: string;
+  datosSolicitados?: Record<string, any>;
 }

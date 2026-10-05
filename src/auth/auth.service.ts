@@ -17,8 +17,6 @@ export class AuthService {
 
     const { usuNombre, password } = loginDto;
 
-    console.log('--- INTENTO DE LOGIN ---');
-    console.log('Buscando usuario:', usuNombre);
 
     // 1. Buscamos el usuario por su nombre o CUIL
     const usuario = await this.usuariosService.findOneByNombre(usuNombre);
@@ -27,7 +25,6 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
    const isPasswordValid = await bcrypt.compare(password, usuario.password_hash);
-   console.log('¿Password válida según bcrypt?:', isPasswordValid);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
@@ -75,7 +72,14 @@ async solicitarRecuperacion(dto: SolicitarRecuperacionDto) {
   const payload = { sub: usuario.usuCodigo, email: usuario.email, tipo: 'reset_password' };
   const resetToken = this.jwtService.sign(payload, { expiresIn: '15m' });
 
-  const resetUrl = `http://localhost:4200/reset-password?token=${resetToken}`;
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+const resetUrl = `${frontendUrl}/restablecer-password?token=${resetToken}`;
+// ============================================================================
+// SIMULACIÓN DE ENVÍO DE EMAIL (MODO DESARROLLO / LOCAL)
+// En producción, acá se integraría un servicio para realizar el envio de correos.
+// Durante el desarrollo, el enlace de restablecimiento se emite por consola
+// para verificar la generación correcta del token JWT y el flujo de recuperación.
+// ============================================================================
 
   console.log(`\n======================================================`);
   console.log(`[RECUPERACIÓN DE PASSWORD] Para: ${usuario.email}`);

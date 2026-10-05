@@ -12,12 +12,111 @@ export class UsuariosService {
     private readonly usuariosRepository: Repository<Usuario>,
   ) {}
 
-  async findOneByNombre(usuNombre: string): Promise<Usuario | null> {
-    return await this.usuariosRepository
-      .createQueryBuilder('usuario')
-      .addSelect('usuario.password_hash')
-      .where('usuario.usuNombre = :usuNombre', { usuNombre })
-      .getOne();
+async findOneByNombre(usuNombre: string): Promise<any | null> {
+    const rawData = await this.usuariosRepository.manager.query(
+      `
+      SELECT 
+        u.usucodigo AS "usuCodigo",
+        u.usunombre AS "usuNombre",
+        u.password_hash,
+        u.apenom AS "apeNom",
+        u.idrol AS "idRol",
+        u.estado,
+        u.email,
+        u.debe_cambiar_password AS "debeCambiarPassword",
+        e.legajo,
+        e.apellido,
+        e.nombres,
+        e.nrodocumento AS "nroDocumento",
+        e.cuil,
+        e.f_nacimiento AS "fechaNacimiento",
+        e.nacionalidad,
+        e.estadocivil AS "estadoCivil",
+        e.idarchivofoto AS "idArchivoFoto",
+        d.calle,
+        d.callenro AS "calleNro",
+        d.barrio,
+        d.ciudad,
+        d.provincia,
+        d.tel1,
+        d.tel2,
+        d.email AS "emailContacto"
+      FROM public.usuarios u
+      LEFT JOIN public.usuarioslegajos ul 
+        ON u.usucodigo = ul.usucodigo AND ul.estado = 'AC'
+      LEFT JOIN public.empleados e 
+        ON ul.legajo = e.legajo
+      LEFT JOIN public.direcciones d 
+        ON e.legajo = d.legajo AND d.estado = 'AC'
+      WHERE LOWER(u.usunombre) = LOWER($1)
+      LIMIT 1;
+      `,
+      [usuNombre]
+    );
+
+    if (!rawData || rawData.length === 0) {
+      return null;
+    }
+
+    const row = rawData[0];
+
+    // Consultar el listado de familiares asociados a este legajo
+   let familiares: any[] = [];
+    if (row.legajo) {
+      familiares = await this.usuariosRepository.manager.query(
+        `
+        SELECT 
+          f.id_familiar AS "idFamiliar",
+          f.numfamiliar AS "numFamiliar",
+          f.apellido,
+          f.nombres,
+          f.tipodocumento AS "tipoDocumento",
+          f.nrodocumento AS "nroDocumento",
+          f.sexo,
+          f.f_nacimiento AS "fechaNacimiento",
+          f.parentesco,
+          f.discapacitado,
+          f.estado
+        FROM public.familiares f
+        WHERE f.legajo = $1 AND f.estado = 'AC'
+        ORDER BY f.numfamiliar ASC;
+        `,
+        [row.legajo]
+      );
+    }
+
+    return {
+      usuCodigo: row.usuCodigo,
+      usuNombre: row.usuNombre,
+      password_hash: row.password_hash,
+      apeNom: row.apeNom,
+      idRol: row.idRol,
+      estado: row.estado,
+      email: row.email,
+      debeCambiarPassword: row.debeCambiarPassword,
+      empleado: row.legajo ? {
+        legajo: row.legajo,
+        apellido: row.apellido,
+        nombres: row.nombres,
+        nroDocumento: row.nroDocumento,
+        nrodocumento: row.nroDocumento,
+        cuil: row.cuil,
+        fechaNacimiento: row.fechaNacimiento,
+        nacionalidad: row.nacionalidad,
+        estadoCivil: row.estadoCivil,
+        idArchivoFoto: row.idArchivoFoto,
+        calle: row.calle,
+        callenro: row.calleNro,
+        barrio: row.barrio,
+        ciudad: row.ciudad,
+        provincia: row.provincia,
+        tel1: row.tel1,
+        tel2: row.tel2,
+        emailContacto: row.emailContacto,
+        // Array de familiares:
+        familiares: familiares || [],
+      } : null,
+    };
   }
 
   // Método que calcula el hash y guarda en la base de datos

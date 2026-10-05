@@ -8,8 +8,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: 'RRHH_SISTEMA_SEG_2026_CLAVE_JWT_KEY',
-    });
+      secretOrKey: process.env.JWT_SECRET || 'RRHH_SISTEMA_SEG_2026_CLAVE_JWT_KEY',    });
   }
 
   async validate(payload: any) {

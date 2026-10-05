@@ -27,12 +27,12 @@ export class SolicitudesController {
     return this.solicitudesService.obtenerMisSolicitudes(usuCodigo);
   }
 
-  // 3. Ver TODAS las solicitudes pendientes (Para el Administrador)
- @UseGuards(RolesGuard)
+ // 3. Ver TODAS las solicitudes para autorizar/ rechazar (Para el Administrador)
+  @UseGuards(RolesGuard)
   @Roles(1)
-  @Get('pendientes')
-  obtenerPendientes() {
-    return this.solicitudesService.obtenerPendientes();
+  @Get() // <-- Le quitás 'pendientes' y dejás solo @Get()
+  obtenerTodas() {
+    return this.solicitudesService.obtenerTodas();
   }
 
   // 4. Aprobar una solicitud (Solo Administrador: rol 1)

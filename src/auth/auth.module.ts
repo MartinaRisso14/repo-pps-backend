@@ -13,8 +13,8 @@ import { JwtAuthGuard } from './jwt-auth.guard';
     UsuariosModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-      secret: 'RRHH_SISTEMA_SEG_2026_CLAVE_JWT_KEY',
-      signOptions: { expiresIn: '8h' },
+    secret: process.env.JWT_SECRET || 'RRHH_SISTEMA_SEG_2026_CLAVE_JWT_KEY',
+    signOptions: { expiresIn: '8h' },
     }),
   ],
   controllers: [AuthController],
