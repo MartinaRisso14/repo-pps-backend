@@ -81,6 +81,28 @@ async function ensureSchema(dataSource: DataSource): Promise<void> {
   await dataSource.query(schema);
 }
 
+async function ensureSolicitudEstadoCheck(dataSource: DataSource): Promise<void> {
+  const restricciones = await dataSource.query(
+    `SELECT pg_get_constraintdef(oid) AS definicion
+     FROM pg_constraint
+     WHERE conrelid = 'public.solicitudes_modificacion'::regclass
+       AND conname = 'solicitudes_modificacion_estado_check'`,
+  );
+  if (restricciones.length > 0 && restricciones[0].definicion.includes('CANCELADA')) return;
+
+  await dataSource.query(
+    `ALTER TABLE public.solicitudes_modificacion
+       DROP CONSTRAINT IF EXISTS solicitudes_modificacion_estado_check`,
+  );
+  await dataSource.query(
+    `ALTER TABLE public.solicitudes_modificacion
+       ADD CONSTRAINT solicitudes_modificacion_estado_check
+       CHECK ((estado)::text = ANY (ARRAY['PENDIENTE'::character varying, 'APROBADA'::character varying,
+                                          'RECHAZADA'::character varying, 'CANCELADA'::character varying]))`,
+  );
+  console.log('solicitudes_modificacion_estado_check actualizado para admitir CANCELADA.');
+}
+
 async function seedCatalogs(dataSource: DataSource): Promise<void> {
   await dataSource.transaction(async (manager) => {
     await manager.query(
@@ -230,6 +252,7 @@ async function bootstrap(): Promise<void> {
   try {
     await dataSource.initialize();
     await ensureSchema(dataSource);
+    await ensureSolicitudEstadoCheck(dataSource);
     await seedCatalogs(dataSource);
 
     const [admin, user] = await Promise.all([

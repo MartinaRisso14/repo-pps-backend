@@ -362,7 +362,7 @@ CREATE TABLE public.solicitudes_modificacion (
     fecha_revision timestamp without time zone,
     revisado_por integer,
     motivo_rechazo text,
-    CONSTRAINT solicitudes_modificacion_estado_check CHECK (((estado)::text = ANY ((ARRAY['PENDIENTE'::character varying, 'APROBADA'::character varying, 'RECHAZADA'::character varying])::text[])))
+    CONSTRAINT solicitudes_modificacion_estado_check CHECK (((estado)::text = ANY ((ARRAY['PENDIENTE'::character varying, 'APROBADA'::character varying, 'RECHAZADA'::character varying, 'CANCELADA'::character varying])::text[])))
 );
 
 
