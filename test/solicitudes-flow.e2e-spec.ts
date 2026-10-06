@@ -267,6 +267,11 @@ describe('Flujo integral de solicitudes (e2e con PostgreSQL)', () => {
       const idsBandeja = bandeja.body.map((item: { id: number }) => item.id);
       expect(idsBandeja).toContain(idSolicitudUsuario);
       expect(idsBandeja).not.toContain(solicitudPropiaAdmin.body.id);
+      const itemBandeja = bandeja.body.find(
+        (item: { id: number }) => item.id === idSolicitudUsuario,
+      );
+      expect(itemBandeja.apellidoEmpleado).toBe('PRUEBA');
+      expect(itemBandeja.nombresEmpleado).toBe('E2E');
       await request(app.getHttpServer())
         .get('/solicitudes')
         .set('Authorization', `Bearer ${tokenUsuario}`)

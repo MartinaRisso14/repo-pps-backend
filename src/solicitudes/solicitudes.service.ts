@@ -120,10 +120,13 @@ export class SolicitudesService {
       sm.revisado_por AS "revisadoPor",
       sm.motivo_rechazo AS "motivoRechazo",
       u.apenom AS agente,
-      ul.legajo AS legajo
+      ul.legajo AS legajo,
+      e.apellido AS "apellidoEmpleado",
+      e.nombres AS "nombresEmpleado"
     FROM public.solicitudes_modificacion sm
     LEFT JOIN public.usuarios u ON u.usucodigo = sm.usucodigo
     LEFT JOIN public.usuarioslegajos ul ON ul.usucodigo = sm.usucodigo
+    LEFT JOIN public.empleados e ON e.legajo = ul.legajo
     WHERE sm.usucodigo <> $1
     ORDER BY sm.id DESC;
   `;
