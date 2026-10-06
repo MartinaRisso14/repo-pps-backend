@@ -27,12 +27,13 @@ export class SolicitudesController {
     return this.solicitudesService.obtenerMisSolicitudes(usuCodigo);
   }
 
- // 3. Ver TODAS las solicitudes para autorizar/ rechazar (Para el Administrador)
+ // 3. Ver solicitudes de otros usuarios para autorizar/rechazar (Administrador)
   @UseGuards(RolesGuard)
   @Roles(1)
   @Get() // <-- Le quitás 'pendientes' y dejás solo @Get()
-  obtenerTodas() {
-    return this.solicitudesService.obtenerTodas();
+  obtenerTodas(@Request() req: any) {
+    const usuCodigo = req.user.usuCodigo || req.user.sub;
+    return this.solicitudesService.obtenerTodas(usuCodigo);
   }
 
   // 4. Aprobar una solicitud (Solo Administrador: rol 1)

@@ -1,23 +1,46 @@
-import { Controller, Get, Param, Patch, Body, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  UseGuards,
+  Request,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
-import { CambiarClaveDto } from './dto/cambiar-password.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import type { Request as ExpressRequest } from 'express';
 
+type AuthenticatedRequest = ExpressRequest & {
+  user: {
+    usuCodigo: number;
+    idRol: number;
+  };
+};
+
+@UseGuards(JwtAuthGuard)
 @Controller('usuarios')
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
 
+  @Get('catalogos/funciones')
+  listarFunciones() {
+    return this.usuariosService.listarFunciones();
+  }
+
   @Get(':usuNombre')
-  async findOne(@Param('usuNombre') usuNombre: string) {
-    return await this.usuariosService.findOneByNombre(usuNombre);
-  }
-  
-  @Patch(':id/cambiar-password')
-  cambiarPassword(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: CambiarClaveDto,
-  ) {
-    return this.usuariosService.cambiarClave(id, dto);
-  }
+  async findOne(@Param('usuNombre') usuNombre: string, @Request() req: AuthenticatedRequest) {
+    const usuario = await this.usuariosService.findOneByNombre(usuNombre);
+    if (!usuario) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
 
+    const esPropietario = Number(usuario.usuCodigo) === Number(req.user.usuCodigo);
+    const esAdministrador = Number(req.user.idRol) === 1;
+    if (!esPropietario && !esAdministrador) {
+      throw new ForbiddenException('No tienes permiso para consultar este legajo');
+    }
 
+    return usuario;
+  }
 }

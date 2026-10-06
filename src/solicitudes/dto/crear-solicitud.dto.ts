@@ -3,17 +3,56 @@ import {
   IsEmail, 
   IsOptional, 
   IsArray, 
-  ValidateNested 
+  ValidateNested,
+  IsNumber,
+  IsBoolean,
+  MaxLength,
+  IsObject,
+  ValidateIf,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 
 export class FamiliarDto {
-  @IsString()
-  parentesco: string;
+  @IsOptional()
+  @IsNumber()
+  idFamiliar?: number;
 
+  @IsOptional()
+  @IsBoolean()
+  esNuevo?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  eliminado?: boolean;
+
+  @IsOptional()
   @IsString()
-  apeNom: string;
+  parentesco?: string;
+
+  @IsOptional()
+  @IsString()
+  apeNom?: string;
+
+  @IsOptional()
+  @IsString()
+  apellido?: string;
+
+  @IsOptional()
+  @IsString()
+  nombres?: string;
+
+  @IsOptional()
+  @IsString()
+  tipoDocumento?: string;
+
+  @IsOptional()
+  @IsString()
+  nroDocumento?: string;
+
+  @IsOptional()
+  @IsString()
+  sexo?: string;
 
   @IsOptional()
   @IsString()
@@ -22,6 +61,19 @@ export class FamiliarDto {
   @IsOptional()
   @IsString()
   fechaNacimiento?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  discapacitado?: boolean;
+
+  @IsOptional()
+  @IsString()
+  archivoCud?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  nombreArchivoCud?: string;
 }
 
 export class CrearSolicitudDto {
@@ -55,6 +107,7 @@ export class CrearSolicitudDto {
   tel2?: string;
 
   @IsOptional()
+  @ValidateIf((_object, value) => value !== '')
   @IsEmail({}, { message: 'El correo electrónico no es válido' })
   email?: string;
 
@@ -65,6 +118,7 @@ export class CrearSolicitudDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(150)
   reparticion?: string;
 
   @IsOptional()
@@ -82,12 +136,18 @@ export class CrearSolicitudDto {
   foto?: string;
 
   @IsOptional()
-  @IsString()
-  certificadoDiscapacidad?: string;
-  
-  @IsOptional()
-  cud?: any; 
+  @IsObject()
+  cud?: {
+    fechaEmision?: string;
+    fechaVencimiento?: string;
+    archivo?: string;
+    nombreArchivo?: string;
+  } | null;
 
   @IsOptional()
   datosSolicitados?: Record<string, any>;
+
+  @IsOptional()
+  @IsObject()
+  valoresAnteriores?: Record<string, any>;
 }

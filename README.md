@@ -1,114 +1,32 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Sistema de Legajo Único — API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API del Sistema de Legajo Único, construida con NestJS, TypeORM y PostgreSQL. La documentación funcional integral está en [`../frontend/DOCUMENTACION.md`](../frontend/DOCUMENTACION.md).
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Despliegue
 
-## Description
+El archivo `render.yaml` propone Render con una base PostgreSQL vacía y aislada para datos ficticios. El comando de inicio de demostración crea el esquema solo cuando la base no tiene tablas, carga catálogos y genera cuentas con claves definidas como secretos del servicio (`DEMO_ADMIN_PASSWORD` y `DEMO_USER_PASSWORD`). No copia información de la base local. No uses este modo con una base institucional ni de producción.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Configurar en el proveedor las variables `DATABASE_URL` (PostgreSQL alojado), `DATABASE_SSL=true` cuando el proveedor requiera TLS con certificado confiable, `JWT_SECRET` (aleatorio y de al menos 32 caracteres), `CORS_ORIGINS` (origen HTTPS exacto del frontend) y `NODE_ENV=production`. El servidor escucha el puerto indicado por `PORT`. También se puede configurar la base mediante `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD` y `DB_DATABASE`.
 
-## Project setup
+Comandos habituales del servicio Node: build `npm ci && npm run build`; inicio `npm run start:prod`. Aplicar las migraciones requeridas al esquema de la base antes de iniciar el servicio. No subir `.env` ni valores reales de secretos al repositorio.
 
-```bash
-$ npm install
-```
+## Solicitudes de modificación
 
-## Compile and run the project
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Observability
-
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
-
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observer](https://observer.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- El login consulta `public.usuarios`, verifica el hash de contraseña en el backend y emite un JWT propio. Para usar las cuentas del sistema existente, ambos sistemas deben apuntar a la misma base/esquema y compartir el formato de hash; también deben coincidir los IDs de rol (el backend trata `idRol: 1` como administrador). El hash se usa solo para verificar credenciales y no se devuelve al cliente.
+- La aplicación solo consulta las credenciales para autenticar. La creación, el cambio y la recuperación de contraseñas quedan a cargo del sistema que administra usuarios; el backend de legajos no expone operaciones para escribir esos datos.
+- `GET /solicitudes` requiere autenticación y el rol de administrador (`idRol: 1`). Devuelve las solicitudes de otros usuarios, incluidas las creadas por otros administradores, pero excluye las del administrador autenticado.
+- `GET /solicitudes/mis-solicitudes` devuelve el historial de solicitudes del usuario autenticado, incluidas las propias solicitudes de modificación de un administrador.
+- La identidad para estos filtros se obtiene del token de acceso; no depende del identificador guardado en el navegador.
+- En el historial, `fechaCreacion` es la fecha de envío y `fechaRevision` la fecha en que se aprobó o rechazó; son eventos distintos y la interfaz muestra ambas cuando existe revisión. Los timestamps sin zona se interpretan como UTC y se muestran en la zona horaria de Argentina.
+- Al aprobar, los familiares existentes se identifican por `idFamiliar` y los nuevos se envían con `esNuevo: true`. El DTO acepta sus datos personales y `discapacitado`; el backend actualiza los primeros, inserta los segundos en `public.familiares` y marca con `estado = 'BA'` los familiares quitados, asignando el siguiente `numfamiliar` disponible para el legajo. También admite solicitudes anteriores que solo incluyen `apeNom` y `parentesco`.
+- El detalle y el PDF del historial desglosan los familiares incluidos en la solicitud con vínculo, nombre, documento, sexo, fecha de nacimiento y discapacidad, sin imprimir datos binarios de archivos o fotos.
+- El formulario envía solo los campos distintos de los valores originales y solo incluye familiares nuevos o editados; los familiares editados se aplican parcialmente para conservar sus demás datos.
+- Para solicitudes antiguas que guardaron el formulario completo, el historial y la bandeja priorizan los familiares marcados con `esNuevo`, evitando presentar campos no modificados como parte del cambio.
+- La bandeja de administración muestra enlaces separados para la foto, el CUD del agente y los CUD de familiares incluidos en la solicitud; si no trae archivos válidos, informa que no hay adjuntos y no muestra enlaces.
+- Los adjuntos se validan al crear la solicitud y se conservan en su JSONB. Al aprobar, la foto se guarda en `public.archivos` y se relaciona mediante `empleados.idarchivofoto`; el CUD del agente se vincula desde `emp_cud.idarchivo`. `GET /archivos/:id` entrega el archivo con autorización del dueño del legajo o de un administrador.
+- La consulta al esquema confirmó que `archivos.idarchivo` y `emp_cud.idcud` tienen secuencias automáticas y que ambas tablas tienen `estado` (`AC` activo, `BA` baja). El perfil y la descarga filtran por registros activos.
+- El esquema mostrado no relaciona archivos con `familiares`; sus CUD permanecen asociados al historial de la solicitud y no se copian al legajo familiar.
+- Al aprobar una solicitud, los campos de domicilio y teléfonos enviados se aplican a la dirección activa (`direcciones.estado = 'AC'`); si no existe, se crea una nueva sin reactivar registros históricos. El correo se sincroniza en `direcciones.email` y `usuarios.email`.
+- `public.empleados.tipodocumento` se agrega mediante `database/migrations/20261006_add_employees_document_type.sql`; la API devuelve ese valor como `tipoDocumento` para el perfil.
+- El catálogo de `public.funciones` se completa con las opciones ya aprobadas del formulario mediante `database/migrations/20261006_seed_functions.sql`. `GET /usuarios/catalogos/funciones` entrega opciones e IDs; al aprobar, `funcion` se resuelve contra el catálogo y se actualiza `empleados.idfuncion`.
+- La repartición se propone como texto libre (máximo 150 caracteres) en una solicitud; recién al aprobar se crea o reutiliza una entrada de `public.reparticiones` y se actualiza `empleados.idreparticion`. `database/migrations/20261006_prepare_repartitions_for_approval.sql` configura el ID automático y evita duplicados por diferencias de mayúsculas/espacios.

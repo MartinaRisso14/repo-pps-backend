@@ -1,9 +1,7 @@
-import { Injectable, BadRequestException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Usuario } from './entities/usuario.entity';
-import * as bcrypt from 'bcrypt';
-import { CambiarClaveDto } from './dto/cambiar-password.dto';
 
 @Injectable()
 export class UsuariosService {
@@ -12,13 +10,41 @@ export class UsuariosService {
     private readonly usuariosRepository: Repository<Usuario>,
   ) {}
 
+  async buscarParaAutenticacion(usuNombre: string): Promise<{
+    usuCodigo: number;
+    usuNombre: string;
+    passwordHash: string;
+    apeNom: string | null;
+    idRol: number;
+    estado: string;
+    email: string | null;
+    debeCambiarPassword: boolean;
+  } | null> {
+    const usuarios = await this.usuariosRepository.manager.query(
+      `SELECT
+         usucodigo AS "usuCodigo",
+         usunombre AS "usuNombre",
+         password_hash AS "passwordHash",
+         apenom AS "apeNom",
+         idrol AS "idRol",
+         estado,
+         email,
+         debe_cambiar_password AS "debeCambiarPassword"
+       FROM public.usuarios
+       WHERE LOWER(usunombre) = LOWER($1)
+       LIMIT 1`,
+      [usuNombre],
+    );
+
+    return usuarios[0] || null;
+  }
+
 async findOneByNombre(usuNombre: string): Promise<any | null> {
     const rawData = await this.usuariosRepository.manager.query(
       `
       SELECT 
         u.usucodigo AS "usuCodigo",
         u.usunombre AS "usuNombre",
-        u.password_hash,
         u.apenom AS "apeNom",
         u.idrol AS "idRol",
         u.estado,
@@ -27,12 +53,17 @@ async findOneByNombre(usuNombre: string): Promise<any | null> {
         e.legajo,
         e.apellido,
         e.nombres,
+        e.tipodocumento AS "tipoDocumento",
         e.nrodocumento AS "nroDocumento",
         e.cuil,
         e.f_nacimiento AS "fechaNacimiento",
         e.nacionalidad,
         e.estadocivil AS "estadoCivil",
-        e.idarchivofoto AS "idArchivoFoto",
+        e.idfuncion AS "idFuncion",
+        fn.funcion,
+        e.idreparticion AS "idReparticion",
+        rep.nombre AS reparticion,
+        foto.idarchivo AS "idArchivoFoto",
         d.calle,
         d.callenro AS "calleNro",
         d.barrio,
@@ -46,6 +77,12 @@ async findOneByNombre(usuNombre: string): Promise<any | null> {
         ON u.usucodigo = ul.usucodigo AND ul.estado = 'AC'
       LEFT JOIN public.empleados e 
         ON ul.legajo = e.legajo
+      LEFT JOIN public.funciones fn
+        ON e.idfuncion = fn.idfuncion
+      LEFT JOIN public.reparticiones rep
+        ON e.idreparticion = rep.idreparticion
+      LEFT JOIN public.archivos foto
+        ON foto.idarchivo = e.idarchivofoto AND foto.estado = 'AC'
       LEFT JOIN public.direcciones d 
         ON e.legajo = d.legajo AND d.estado = 'AC'
       WHERE LOWER(u.usunombre) = LOWER($1)
@@ -62,8 +99,9 @@ async findOneByNombre(usuNombre: string): Promise<any | null> {
 
     // Consultar el listado de familiares asociados a este legajo
    let familiares: any[] = [];
-    if (row.legajo) {
-      familiares = await this.usuariosRepository.manager.query(
+   let cud: Record<string, unknown> | null = null;
+   if (row.legajo) {
+     familiares = await this.usuariosRepository.manager.query(
         `
         SELECT 
           f.id_familiar AS "idFamiliar",
@@ -83,12 +121,27 @@ async findOneByNombre(usuNombre: string): Promise<any | null> {
         `,
         [row.legajo]
       );
+
+      const registrosCud = await this.usuariosRepository.manager.query(
+        `SELECT
+           ec.idcud AS "idCud",
+           ec.fechaemision AS "fechaEmision",
+           ec.fechavencimiento AS "fechaVencimiento",
+           CASE WHEN a.idarchivo IS NOT NULL THEN ec.idarchivo ELSE NULL END AS "idArchivoCud",
+           a.nombrearchivo AS "nombreArchivoCud"
+         FROM public.emp_cud ec
+         LEFT JOIN public.archivos a ON a.idarchivo = ec.idarchivo AND a.estado = 'AC'
+         WHERE ec.legajo = $1 AND ec.estado = 'AC'
+         ORDER BY ec.fechamod DESC NULLS LAST, ec.idcud DESC
+         LIMIT 1`,
+        [row.legajo],
+      );
+      cud = registrosCud[0] || null;
     }
 
     return {
       usuCodigo: row.usuCodigo,
       usuNombre: row.usuNombre,
-      password_hash: row.password_hash,
       apeNom: row.apeNom,
       idRol: row.idRol,
       estado: row.estado,
@@ -98,13 +151,20 @@ async findOneByNombre(usuNombre: string): Promise<any | null> {
         legajo: row.legajo,
         apellido: row.apellido,
         nombres: row.nombres,
+        tipoDocumento: row.tipoDocumento,
         nroDocumento: row.nroDocumento,
         nrodocumento: row.nroDocumento,
         cuil: row.cuil,
         fechaNacimiento: row.fechaNacimiento,
         nacionalidad: row.nacionalidad,
         estadoCivil: row.estadoCivil,
+        idFuncion: row.idFuncion,
+        funcion: row.funcion,
+        idReparticion: row.idReparticion,
+        reparticion: row.reparticion,
         idArchivoFoto: row.idArchivoFoto,
+        foto: row.idArchivoFoto ? `/archivos/${row.idArchivoFoto}` : '',
+        cud,
         calle: row.calle,
         callenro: row.calleNro,
         barrio: row.barrio,
@@ -119,70 +179,13 @@ async findOneByNombre(usuNombre: string): Promise<any | null> {
     };
   }
 
-  // Método que calcula el hash y guarda en la base de datos
-  async create(datosUsuario: {
-    usuNombre: string;
-    password: string;
-    apeNom?: string;
-    idRol?: number;
-    email?: string;
-  }): Promise<Usuario> {
-    const existe = await this.findOneByNombre(datosUsuario.usuNombre);
-    if (existe) {
-      throw new BadRequestException('El nombre de usuario ya está en uso');
-    }
-
-    // Hashea automáticamente la contraseña en texto plano
-    const saltRounds = 10;
-    const password_hash = await bcrypt.hash(datosUsuario.password, saltRounds);
-
-    const nuevoUsuario = this.usuariosRepository.create({
-      usuNombre: datosUsuario.usuNombre,
-      password_hash,
-      apeNom: datosUsuario.apeNom,
-      idRol: datosUsuario.idRol,
-      email: datosUsuario.email,
-      estado: 'AC',
-    });
-
-    return await this.usuariosRepository.save(nuevoUsuario);
+  async listarFunciones(): Promise<{ idfuncion: number; funcion: string }[]> {
+    return this.usuariosRepository.manager.query(
+      `SELECT idfuncion, funcion
+       FROM public.funciones
+       WHERE funcion IS NOT NULL
+       ORDER BY funcion`,
+    );
   }
-  // Adentro de la clase UsuariosService:
-
-async cambiarClave(id: number, dto: CambiarClaveDto) {
-  const usuario = await this.usuariosRepository
-    .createQueryBuilder('usuario')
-    .addSelect('usuario.password_hash')
-    .where('usuario.usuCodigo = :id', { id }) // o el nombre de tu primary key
-    .getOne();
-
-  if (!usuario) {
-    throw new NotFoundException('Usuario no encontrado');
-  }
-
-  const esValida = await bcrypt.compare(dto.claveActual, usuario.password_hash);
-  if (!esValida) {
-    throw new UnauthorizedException('La clave actual no es correcta');
-  }
-
-  // Hashear y guardar la nueva clave
-  const salt = await bcrypt.genSalt(10);
-  usuario.password_hash = await bcrypt.hash(dto.nuevaClave, salt);
-  
-  await this.usuariosRepository.save(usuario);
-
-  return { message: 'Contraseña actualizada correctamente' };
-}
-// En usuarios.service.ts
-async buscarPorEmail(email: string) {
-  return await this.usuariosRepository.findOne({ where: { email } });
-}
-
-async actualizarPassword(usuCodigo: number, passwordHash: string) {
-  return await this.usuariosRepository.update(
-    { usuCodigo },
-    { password_hash: passwordHash, debeCambiarPassword: false },
-  );
-}
 
 }

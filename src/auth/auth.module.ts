@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller';
 import { UsuariosModule } from '../usuarios/usuarios.module';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { getJwtSecret } from '../config/environment';
 
 
 @Module({
@@ -13,8 +14,8 @@ import { JwtAuthGuard } from './jwt-auth.guard';
     UsuariosModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-    secret: process.env.JWT_SECRET || 'RRHH_SISTEMA_SEG_2026_CLAVE_JWT_KEY',
-    signOptions: { expiresIn: '8h' },
+      secret: getJwtSecret(),
+      signOptions: { expiresIn: '8h' },
     }),
   ],
   controllers: [AuthController],
