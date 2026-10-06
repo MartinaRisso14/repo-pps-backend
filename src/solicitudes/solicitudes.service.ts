@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository, DataSource } from 'typeorm';
 import { SolicitudModificacion } from './solicitud.entity';
@@ -700,6 +700,31 @@ await queryRunner.manager.query(
     solicitud.revisadoPor = revisadoPor;
     solicitud.fechaRevision = new Date();
     solicitud.motivoRechazo = dto.motivoRechazo;
+
+    return await this.solicitudRepo.save(solicitud);
+  }
+
+  // 6. Cancelar solicitud pendiente (Solo el solicitante)
+  async cancelarSolicitud(idSolicitud: number, usuCodigo: number) {
+    const solicitud = await this.solicitudRepo.findOne({
+      where: { id: idSolicitud },
+    });
+
+    if (!solicitud) {
+      throw new NotFoundException(`Solicitud con ID ${idSolicitud} no encontrada`);
+    }
+
+    if (Number(solicitud.usuCodigo) !== Number(usuCodigo)) {
+      throw new ForbiddenException('No podés cancelar una solicitud de otro usuario.');
+    }
+
+    if (solicitud.estado !== 'PENDIENTE') {
+      throw new BadRequestException(`La solicitud ya fue procesada (Estado: ${solicitud.estado})`);
+    }
+
+    solicitud.estado = 'CANCELADA';
+    solicitud.revisadoPor = usuCodigo;
+    solicitud.fechaRevision = new Date();
 
     return await this.solicitudRepo.save(solicitud);
   }

@@ -1,5 +1,5 @@
 import { 
-  Controller,Post, Get, Body, Patch, UseGuards, Request, ParseIntPipe, Param} from '@nestjs/common';
+  Controller,Post, Get, Delete, Body, Patch, UseGuards, Request, ParseIntPipe, Param} from '@nestjs/common';
 import { SolicitudesService } from './solicitudes.service';
 import { CrearSolicitudDto } from './dto/crear-solicitud.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'; 
@@ -59,6 +59,16 @@ export class SolicitudesController {
   ) {
     const revisadoPor = req.user.usuCodigo || req.user.sub;
     return this.solicitudesService.rechazarSolicitud(id, revisadoPor, dto);
+  }
+
+  // 6. Cancelar una solicitud pendiente (Solo el solicitante)
+  @Delete(':id/cancelar')
+  cancelarSolicitud(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: any,
+  ) {
+    const usuCodigo = req.user.sub || req.user.usuCodigo;
+    return this.solicitudesService.cancelarSolicitud(id, usuCodigo);
   }
 
 }
