@@ -2,6 +2,8 @@
 
 API del Sistema de Legajo Único, construida con NestJS, TypeORM y PostgreSQL. La documentación funcional integral está en [`../frontend/DOCUMENTACION.md`](../frontend/DOCUMENTACION.md).
 
+El DER complementario de la implementación y sus diferencias con el esquema recibido están en [`database/DIAGRAMA_ENTIDAD_RELACION.md`](./database/DIAGRAMA_ENTIDAD_RELACION.md).
+
 ## Despliegue
 
 El archivo `render.yaml` propone Render con una base PostgreSQL vacía y aislada para datos ficticios. El comando de inicio de demostración crea el esquema solo cuando la base no tiene tablas, carga catálogos y genera cuentas con claves definidas como secretos del servicio (`DEMO_ADMIN_PASSWORD` y `DEMO_USER_PASSWORD`). No copia información de la base local. No uses este modo con una base institucional ni de producción.
@@ -9,6 +11,10 @@ El archivo `render.yaml` propone Render con una base PostgreSQL vacía y aislada
 Configurar en el proveedor las variables `DATABASE_URL` (PostgreSQL alojado), `DATABASE_SSL=true` cuando el proveedor requiera TLS con certificado confiable, `JWT_SECRET` (aleatorio y de al menos 32 caracteres), `CORS_ORIGINS` (origen HTTPS exacto del frontend) y `NODE_ENV=production`. El servidor escucha el puerto indicado por `PORT`. También se puede configurar la base mediante `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD` y `DB_DATABASE`.
 
 Comandos habituales del servicio Node: build `npm ci && npm run build`; inicio `npm run start:prod`. Aplicar las migraciones requeridas al esquema de la base antes de iniciar el servicio. No subir `.env` ni valores reales de secretos al repositorio.
+
+Para una demo autocontenida en Railway, crear un PostgreSQL vacío y conectar sus `DATABASE_URL` y `DATABASE_SSL=false` al servicio de API. Configurar `DEMO_MODE=true`, `DEMO_SEED_ENABLED=true`, `JWT_SECRET`, `NODE_ENV=production`, dos usuarios y contraseñas demo distintos, y `CORS_ORIGINS` con el dominio HTTPS del frontend. Usar `npm run build` para compilar y `npm run start:demo` como comando de inicio: este crea el esquema únicamente si la base está vacía, carga catálogos y prepara cuentas ficticias. No conectar una base institucional o con datos reales.
+
+El frontend se despliega desde el repositorio `frontend` como servicio separado; sus instrucciones y referencias de variables Railway están en [`../frontend/README.md`](../frontend/README.md).
 
 ## Solicitudes de modificación
 
